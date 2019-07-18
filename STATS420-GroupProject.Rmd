@@ -1,0 +1,57 @@
+---
+title: "STAT420-GroupProject : Analysis of New York `Energy-Star` rating using linear regression"
+author: "Rohit Bansal (rbansal3), Manas Kumar Mukherjee (manaskm2)"
+date: "7/16/2019"
+output: html_document
+---
+
+# Motivation
+
+In today's world, global warming and pollution are two biggest threats for human existence. We wanted to apply our newly learned linear-regression skills to get meaningful insights using some real data related to these issues. 
+
+As part of our research, we found that there were some significant work done by the Mayor's office of the New York city in order to improve the energy efficiency of buildings. 
+
+As per [NYC Sustainability site](https://www1.nyc.gov/site/sustainability/our-programs/buildings.page) "In most major cities in the US, transportation produces the bulk of emissions. In New York City, 68% of emissions come from buildings. Almost half of those emissions come from only 2% of buildings. To counter this, the city needs aggressive retrofits to make existing buildings more efficient."
+
+# Objective 
+
+The objective is to use the energy data to build a model that can predict the Energy Star Score of a building and interpret the results to find the factors which influence the score. 
+
+# Description of the dataset
+
+The original dataset is taken from the Govt. of New York's website. 
+Website - https://www1.nyc.gov/site/sustainability/our-programs/buildings.page
+File ref - https://www1.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_reported_in_2017.xlsb
+
+This dataset represents the Public Disclosure of benchmarking data for energy consumed in 2016. It contains data for lots with a single building and campuses.
+
+The data defination of the individual columns are mentioned in the following file. 
+http://www.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_definitions_2017.pdf
+
+In this dataset, we'll be using the `ENERGY STAR Score` as the response variable. We're interested in building an accurate and interpretable linear regression model and in identifying significant `ENERGY STAR Score` predictors.
+There are `53` other columns in this dataset. From a very high-level overview, we think a few of the following columns might be useful predictors: `Year Built`, `Occupancy`, `Natural Gas Use (kBtu)`, `Water Required?` etc.
+
+# Data demo
+
+We loaded the dataset using `R` in the `nyc_data` variable. All records and columns are loaded successfully.
+It has 11,746 records with 54 attributes.
+
+```{r}
+nyc_data = read.csv('NYC-BuildingEnergyData-FromSite.csv')
+dim(nyc_data)
+```
+
+Here are a few sample records.
+
+```{r}
+
+knitr::kable(nyc_data[1:5,1:5])
+```
+
+# References 
+
+- [NYC Sustainability site](https://www1.nyc.gov/site/sustainability/our-programs/buildings.page)
+- [Towardsdatascience blog on similar work](https://towardsdatascience.com/a-complete-machine-learning-walk-through-in-python-part-one-c62152f39420)
+- [Energy STAR score](https://www.energystar.gov/buildings/facility-owners-and-managers/existing-buildings/use-portfolio-manager/interpret-your-results/what)
+
+
