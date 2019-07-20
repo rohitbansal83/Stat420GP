@@ -1,2 +1,2 @@
-# Stat420
-# Group Project Rohit Bansal (rbansal3), Manas Mukharjee
+# Stat420 Group Project
+# By: Rohit Bansal (rbansal3), Manas Mukharjee
