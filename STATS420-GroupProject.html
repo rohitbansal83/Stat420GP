@@ -7,7 +7,6 @@
 <meta charset="utf-8" />
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
-<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
 <meta name="author" content="Rohit Bansal (rbansal3), Manas Kumar Mukherjee (manaskm2)" />
@@ -344,6 +343,18 @@ summary {
 }
 </style>
 
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
 <!-- code folding -->
 
 
@@ -382,7 +393,11 @@ summary {
 </div>
 <div id="description-of-the-dataset" class="section level1">
 <h1>Description of the dataset</h1>
-<p>The original dataset is taken from the Govt. of New York’s website. Website - <a href="https://www1.nyc.gov/site/sustainability/our-programs/buildings.page" class="uri">https://www1.nyc.gov/site/sustainability/our-programs/buildings.page</a> File ref - <a href="https://www1.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_reported_in_2017.xlsb" class="uri">https://www1.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_reported_in_2017.xlsb</a></p>
+<p>The original dataset is taken from the Govt. of New York’s website.</p>
+<ul>
+<li>Website - <a href="https://www1.nyc.gov/site/sustainability/our-programs/buildings.page" class="uri">https://www1.nyc.gov/site/sustainability/our-programs/buildings.page</a></li>
+<li>File ref - <a href="https://www1.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_reported_in_2017.xlsb" class="uri">https://www1.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_reported_in_2017.xlsb</a></li>
+</ul>
 <p>This dataset represents the Public Disclosure of benchmarking data for energy consumed in 2016. It contains data for lots with a single building and campuses.</p>
 <p>The data defination of the individual columns are mentioned in the following file. <a href="http://www.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_definitions_2017.pdf" class="uri">http://www.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_definitions_2017.pdf</a></p>
 <p>In this dataset, we’ll be using the <code>ENERGY STAR Score</code> as the response variable. We’re interested in building an accurate and interpretable linear regression model and in identifying significant <code>ENERGY STAR Score</code> predictors. There are <code>53</code> other columns in this dataset. From a very high-level overview, we think a few of the following columns might be useful predictors: <code>Year Built</code>, <code>Occupancy</code>, <code>Natural Gas Use (kBtu)</code>, <code>Water Required?</code> etc.</p>
@@ -470,23 +485,6 @@ $(document).ready(function () {
 
 
 </script>
-
-<!-- tabsets -->
-
-<script>
-$(document).ready(function () {
-  window.buildTabsets("TOC");
-});
-
-$(document).ready(function () {
-  $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
-  });
-});
-</script>
-
-<!-- code folding -->
-
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
 <script>
