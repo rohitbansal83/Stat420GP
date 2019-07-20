@@ -20,8 +20,9 @@ The objective is to use the energy data to build a model that can predict the En
 # Description of the dataset
 
 The original dataset is taken from the Govt. of New York's website. 
-Website - https://www1.nyc.gov/site/sustainability/our-programs/buildings.page
-File ref - https://www1.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_reported_in_2017.xlsb
+
+- Website - https://www1.nyc.gov/site/sustainability/our-programs/buildings.page
+- File ref - https://www1.nyc.gov/html/gbee/downloads/misc/nyc_benchmarking_disclosure_data_reported_in_2017.xlsb
 
 This dataset represents the Public Disclosure of benchmarking data for energy consumed in 2016. It contains data for lots with a single building and campuses.
 
