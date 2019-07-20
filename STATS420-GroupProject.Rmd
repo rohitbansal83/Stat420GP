@@ -1,5 +1,5 @@
 ---
-title: "STAT420-GroupProject : Analysis of New York `Energy-Star` rating using linear regression"
+title: "STAT420-Group113 : Analysis of New York `Energy-Star` rating using linear regression"
 author: "Rohit Bansal (rbansal3), Manas Kumar Mukherjee (manaskm2)"
 date: "7/16/2019"
 output: html_document
