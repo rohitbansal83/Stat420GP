@@ -1,0 +1,84 @@
+---
+title: "STATS420-Group113-ProjectNotebook"
+author: "Manas Kumar Mukherjee"
+date: "7/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+nyc_data = read.csv('NYC-BuildingEnergyData-FromSite.csv')
+dim(nyc_data)
+```
+
+```{r}
+nyc_data_cleaned = read.csv('newyork_energydata_cleaned_group113.csv')
+dim(nyc_data_cleaned)
+names(nyc_data_cleaned)
+```
+
+```{r}
+names(nyc_data_cleaned) = c('borough', 'floorarea', 'propertytype', 'floorarea_usage', 
+                            'year', 'num_building', 'occupancy', 'metered_area_energy',
+                            'metered_area_water', 'energy_star_score', 'site_eui', 'weather_norm_site_eui',
+                            'weather_norm_site_electricity_intensity', 'weather_norm_site_gas_intensity', 'weather_norm_source_eui',
+                            'natural_gas_use', 'weather_norm_site_gas_use', 'electricity_use_grid_purchase', 'weather_norm_site_electricity', 
+                            'total_ghg_emissions', 'direct_ghg_emissions','indirect_ghg_emissions', "property_gfa",                        
+                            'water_use', 'water_intensity', 'source_eui', 'water_required')
+```
+
+```{r}
+head(nyc_data_cleaned, 10)
+```
+
+```{r}
+str(nyc_data_cleaned)
+```
+
+```{r}
+nyc_data_cleaned_with_valid_energyscore = subset(nyc_data_cleaned, nyc_data_cleaned$energy_star_score!='Not Available')
+dim(nyc_data_cleaned_with_valid_energyscore)
+
+str(nyc_data_cleaned_with_valid_energyscore)
+```
+
+
+```{r}
+table(nyc_data_cleaned_with_valid_energyscore$propertytype)
+```
+
+
+
+```{r}
+for (col in names(nyc_data_cleaned_with_valid_energyscore)){
+  print(col)
+  print(typeof(col))
+  print(mean(nyc_data_cleaned_with_valid_energyscore[,col]=="Not Available"))
+}
+```
+
+
+```{r}
+nyc_data_cleaned_with_valid_energyscore = droplevels(nyc_data_cleaned_with_valid_energyscore)
+```
+
+```{r}
+#nyc_data_cleaned_with_valid_energyscore$building_age = 2019 - nyc_data_cleaned_with_valid_energyscore$year
+nyc_data_cleaned_with_valid_energyscore$floorarea_usage = as.numeric(nyc_data_cleaned_with_valid_energyscore$floorarea_usage)
+#nyc_data_cleaned_with_valid_energyscore = subset(nyc_data_cleaned_with_valid_energyscore, select = -c(year) )
+
+nyc_data_cleaned_with_valid_energyscore$energy_star_score = as.numeric(nyc_data_cleaned_with_valid_energyscore$energy_star_score)
+str(nyc_data_cleaned_with_valid_energyscore)
+```
+
+```{r}
+nyc_data_cleaned_with_valid_energyscore$site_eui = as.numeric(nyc_data_cleaned_with_valid_energyscore$site_eui)
+```
+
+```{r}
+
+```
+
