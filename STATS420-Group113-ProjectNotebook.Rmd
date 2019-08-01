@@ -60,15 +60,58 @@ for (col in names(nyc_data_cleaned_with_valid_energyscore)){
 }
 ```
 
+```{r}
+# cols_with_not_availabble = c("metered_area_energy", "metered_area_water", "weather_norm_site_eui", "weather_norm_site_electricity_intensity", "weather_norm_site_gas_intensity", "weather_norm_source_eui",
+#   "natural_gas_use", "weather_norm_site_gas_use", "electricity_use_grid_purchase", "weather_norm_site_electricity", "total_ghg_emissions", "direct_ghg_emissions",
+#   "indirect_ghg_emissions", "water_use",  "water_intensity")
+
+cols_with_not_availabble = c("metered_area_energy", "weather_norm_site_eui", "weather_norm_site_electricity_intensity", "weather_norm_site_gas_intensity", "weather_norm_source_eui",
+  "natural_gas_use", "weather_norm_site_gas_use", "electricity_use_grid_purchase", "weather_norm_site_electricity", "total_ghg_emissions", "direct_ghg_emissions",
+  "indirect_ghg_emissions")
+
+
+nyc_data_cleaned_with_valid_energyscore_copy = data.frame(nyc_data_cleaned_with_valid_energyscore)
+
+for ( each_col in cols_with_not_availabble){
+  nyc_data_cleaned_with_valid_energyscore_copy[ nyc_data_cleaned_with_valid_energyscore_copy[each_col] == "Not Available", each_col] = NA
+}
+
+#x[x$metered_area_energy == "Not Available", "metered_area_energy"] = NA
+```
+
+
+```{r}
+#Check if NA replacement worked properly.
+length(nyc_data_cleaned_with_valid_energyscore_copy[is.na(nyc_data_cleaned_with_valid_energyscore_copy["metered_area_water"]), c("metered_area_water")])/nrow(nyc_data_cleaned_with_valid_energyscore_copy)
+```
+
+
+```{r}
+for (col in names(nyc_data_cleaned_with_valid_energyscore_copy)){
+  print(col)
+  print(typeof(col))
+  print(mean(nyc_data_cleaned_with_valid_energyscore_copy[,col]=="Not Available"))
+}
+```
+
+
+```{r}
+dim(nyc_data_cleaned_with_valid_energyscore_copy)
+
+x1 = na.omit(nyc_data_cleaned_with_valid_energyscore_copy)
+dim(x1)
+```
 
 ```{r}
 nyc_data_cleaned_with_valid_energyscore = droplevels(nyc_data_cleaned_with_valid_energyscore)
 ```
 
+
+
 ```{r}
-#nyc_data_cleaned_with_valid_energyscore$building_age = 2019 - nyc_data_cleaned_with_valid_energyscore$year
+nyc_data_cleaned_with_valid_energyscore$building_age = 2019 - nyc_data_cleaned_with_valid_energyscore$year
 nyc_data_cleaned_with_valid_energyscore$floorarea_usage = as.numeric(nyc_data_cleaned_with_valid_energyscore$floorarea_usage)
-#nyc_data_cleaned_with_valid_energyscore = subset(nyc_data_cleaned_with_valid_energyscore, select = -c(year) )
+nyc_data_cleaned_with_valid_energyscore = subset(nyc_data_cleaned_with_valid_energyscore, select = -c(year) )
 
 nyc_data_cleaned_with_valid_energyscore$energy_star_score = as.numeric(nyc_data_cleaned_with_valid_energyscore$energy_star_score)
 str(nyc_data_cleaned_with_valid_energyscore)
@@ -79,6 +122,125 @@ nyc_data_cleaned_with_valid_energyscore$site_eui = as.numeric(nyc_data_cleaned_w
 ```
 
 ```{r}
+str(nyc_data_cleaned_with_valid_energyscore)
+```
 
+```{r}
+length(names(x1))
+
+names(x1)[11:27]
+
+x1$weather_norm_site_eui = as.numeric(x1$weather_norm_site_eui)
+x1$weather_norm_site_electricity_intensity = as.numeric(x1$weather_norm_site_electricity_intensity)
+x1$weather_norm_site_gas_intensity = as.numeric(x1$weather_norm_site_gas_intensity)
+x1$weather_norm_source_eui = as.numeric(x1$weather_norm_source_eui)
+
+x1$natural_gas_use = as.numeric(x1$natural_gas_use)
+x1$weather_norm_site_gas_use = as.numeric(x1$weather_norm_site_gas_use)
+x1$weather_norm_site_electricity = as.numeric(x1$weather_norm_site_electricity)
+x1$total_ghg_emissions = as.numeric(x1$total_ghg_emissions)
+
+x1$direct_ghg_emissions = as.numeric(x1$direct_ghg_emissions)
+x1$indirect_ghg_emissions = as.numeric(x1$indirect_ghg_emissions)
+x1$water_use = as.numeric(x1$water_use)
+
+x1$electricity_use_grid_purchase = as.numeric(x1$electricity_use_grid_purchase)
+
+x1$water_intensity = as.numeric(x1$water_intensity)
+x1$source_eui = as.numeric(x1$source_eui)
+x1$water_required = as.numeric(x1$water_required)
+
+str(x1)
+```
+
+
+```{r}
+nyc_data_cleaned_with_valid_energyscore[nyc_data_cleaned_with_valid_energyscore$metered_area_energy=='Not Available', names('nyc_data_cleaned_with_valid_energyscore')]
+```
+
+```{r}
+x = na.omit(nyc_data_cleaned_with_valid_energyscore)
+dim(nyc_data_cleaned_with_valid_energyscore)
+dim(x)
+```
+
+```{r}
+#x[x$metered_area_energy == "Not Available", "metered_area_energy"] = NA
+x[x$metered_area_energy == "Not Available", "metered_area_energy"]
+```
+
+
+```{r}
+```
+
+```{r}
+pairs(x1[c("borough","floorarea", "propertytype", "floorarea_usage", "num_building","occupancy","energy_star_score")])
+
+pairs(x1[c("site_eui", "weather_norm_site_eui", "weather_norm_site_electricity_intensity", "weather_norm_site_gas_intensity", "weather_norm_source_eui", "natural_gas_use", "energy_star_score")])
+
+names(x1)[11:27]
+
+pairs(x1[c("energy_star_score",
+"weather_norm_site_eui",                   "weather_norm_site_electricity_intensity", "weather_norm_site_gas_intensity"   ,     
+"weather_norm_source_eui"  ,               "natural_gas_use"      ,                   "weather_norm_site_gas_use",              
+"electricity_use_grid_purchase" ,          "weather_norm_site_electricity" ,          "total_ghg_emissions")]) 
+
+
+pairs(x1[c("energy_star_score", "direct_ghg_emissions"   ,                 "indirect_ghg_emissions",                  "property_gfa" ,                          
+"water_use" ,                              "water_intensity",                         "source_eui" ,                            
+"water_required" ,                       "building_age")])
+
+
+pairs(x1[c("energy_star_score" ,"floorarea", "propertytype")])
+
+plot(energy_star_score ~ propertytype, data=x1)
+
+plot(energy_star_score ~ water_required, data=x1)
+```
+
+
+```{r}
+lm_energy = lm (energy_star_score ~ . -c(water_intensity), data = x1)
+summary(lm_energy)
+```
+
+```{r}
+lm_energy_step = step(lm_energy, trace = 0)
+summary(lm_energy_step)
+```
+
+```{r}
+plot(energy_star_score ~ weather_norm_site_gas_use, data=x1)
+```
+
+```{r}
+names(x)[15:20]
+c("borough","floorarea", "propertytype", "floorarea_usage", "num_building","occupancy","energy_star_score")
+```
+
+
+```{r}
+blog_data = read.csv("training_features.csv")
+dim(blog_data)
+```
+
+```{r}
+#airs( blog_data[names(blog_data)[1:10] )
+#pairs(blog_data[names(blog_data)[1:17]])
+blog_data = blog_data[names(blog_data)[1:17]]
+```
+
+```{r}
+head(blog_data, 5)
+```
+
+```{r}
+blog_data_lm = lm (score ~ . , data = blog_data)
+summary(blog_data_lm)
+```
+
+```{r}
+blog_data_lm_step = step(blog_data_lm, trace = 0)
+summary(blog_data_lm_step)
 ```
 
