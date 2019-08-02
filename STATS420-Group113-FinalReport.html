@@ -418,9 +418,38 @@ $(document).ready(function () {
 <!-- Transformations -->
 <!-- Polynomial regression -->
 <!-- Model selection -->
-<p>Step1: Data preparation 1a. High level data. Mention dimension 1b. Remove unnessary variables based the data (null removal, imputation, row removal) 1c. EDA ( Data exploration ). Plot pair plot between the target and other predictor variables. 1d. Final data for different models (2/3 csv files)</p>
+<div id="step1-data-preparation" class="section level4">
+<h4>- Step1: Data preparation</h4>
+<p>1a. High level data. Mention dimension</p>
+<pre class="r"><code>nyc_data_cleaned = read.csv('NYC-BuildingEnergyData-FromSite_original.csv')
+dim(nyc_data_cleaned)</code></pre>
+<pre><code>## [1] 11746    54</code></pre>
+<pre class="r"><code>names(nyc_data_cleaned)[1:10]</code></pre>
+<pre><code>##  [1] &quot;Order&quot;                                         
+##  [2] &quot;Property.Id&quot;                                   
+##  [3] &quot;Property.Name&quot;                                 
+##  [4] &quot;Parent.Property.Id&quot;                            
+##  [5] &quot;Parent.Property.Name&quot;                          
+##  [6] &quot;BBL...10.digits&quot;                               
+##  [7] &quot;NYC.Borough..Block.and.Lot..BBL..self.reported&quot;
+##  [8] &quot;NYC.Building.Identification.Number..BIN.&quot;      
+##  [9] &quot;Address.1..self.reported.&quot;                     
+## [10] &quot;Address.2&quot;</code></pre>
+<p>After observing the data, we found that the following columns are not suitable for the model.</p>
+<p>[1] “Order”<br />
+[2] “Property.Id”<br />
+[3] “Property.Name”<br />
+[4] “Parent.Property.Id”<br />
+[5] “Parent.Property.Name”<br />
+[6] “BBL…10.digits”<br />
+[7] “NYC.Borough..Block.and.Lot..BBL..self.reported” [8] “NYC.Building.Identification.Number..BIN.”<br />
+[9] “Address.1..self.reported.”<br />
+[10] “Address.2”</p>
+<p>1b. Remove unnessary variables based the data (null removal, imputation, row removal)</p>
+<p>1c. EDA ( Data exploration ). Plot pair plot between the target and other predictor variables. 1d. Final data for different models (2/3 csv files)</p>
 <p>Step2: Find full additive model. 2a. Create a benchmark prediction</p>
 <p>Step3: Find an optimal model 3a. use <code>Step</code> function 3b. Apply transformation 3c. Check model assumptions 3d. Check colinearity 3d. Check outliers and/or influential points.</p>
+</div>
 </div>
 <div id="results" class="section level2">
 <h2>Results</h2>

@@ -56,14 +56,91 @@ There are `53` other columns in this dataset. From a very high-level overview, w
 #### - Step1: Data preparation
 1a. High level data. Mention dimension 
 
+Since `ENERGY.STAR.Score` is the response variable, we removing the records where the `ENERGY.STAR.Score` is not available. 
+
 ```{r}
-nyc_data_cleaned = read.csv('newyork_energydata_cleaned_group113.csv')
-dim(nyc_data_cleaned)
-names(nyc_data_cleaned)
+nyc_data_original = read.csv('NYC-BuildingEnergyData-FromSite_original.csv')
+nyc_data_original = subset(nyc_data_original, nyc_data_original$ENERGY.STAR.Score != "Not Available")
+dim(nyc_data_original)
+```
+
+So the original data set has 9,642 records and 54 columns. 
+
+- After observing the data, we found that the following columns are not relevant for our analysis. So we deleted this columns from our dataset. 
+
+Order
+Property Id
+Property Name
+Parent Property Id
+Parent Property Name
+BBL - 10 digits
+NYC Borough, Block and Lot (BBL) self-reported
+NYC Building Identification Number (BIN)
+Address 1 (self-reported)
+Address 2
+Postal Code
+Street Number
+Street Name
+Release Date
+DOF Benchmarking Submission Status
+
+```{r}
+
+names(nyc_data_original) = make.names(names(nyc_data_original), unique=TRUE)
+names(nyc_data_original)
+nyc_data_clean = subset(nyc_data_original, select = -c(Order, Property.Id, Property.Name, Parent.Property.Id,
+                                                            Parent.Property.Name, BBL...10.digits, NYC.Borough..Block.and.Lot..BBL..self.reported, NYC.Building.Identification.Number..BIN.,
+                                                          Address.1..self.reported., Address.2, Postal.Code,Street.Number, 
+                                                          Street.Name, Release.Date, DOF.Benchmarking.Submission.Status))
+dim(nyc_data_clean)
+```
+After removing the unwanted columns, we have 39 columns or predictors. 
+
+- Based on the significantly high number of null or 'Not Applicable' values, we have removed the following columns as well.
+
+```{r}
+library(knitr)
+number_of_columns = ncol(nyc_data_clean)
+
+not_available_values = rep(0, number_of_columns)
+
+ind = 1
+for (col in names(nyc_data_clean)){
+  not_available_values[ind] = round(mean(nyc_data_clean[,col]=="Not Available"),2)
+  ind = ind + 1
+}
+
+data_frame = data.frame(column_names = names(nyc_data_clean), num_of_not_available = not_available_values)
+dt = data_frame[order(-data_frame$num_of_not_available),]
+kable(x = dt)
+```
+
+The above table shows that for the following columns, more than 75% of the values are `Not Available`.
+Because of this much huge missing data, these columns are not considered in the modeling. 
+Based on our domain knowlegge, it is found that these columns don't have any significant data. 
+
+- Fuel.Oil..1.Use..kBtu.
+- Diesel..2.Use..kBtu.	
+- Fuel.Oil..5…6.Use..kBtu.	
+- 3rd.Largest.Property.Use.Type	
+- X3rd.Largest.Property.Use.Type…Gross.Floor.Area..ft..	
+- District.Steam.Use..kBtu.	
+- Fuel.Oil..4.Use..kBtu.	
+- Fuel.Oil..2.Use..kBtu.	
+- X2nd.Largest.Property.Use.Type	
+- X2nd.Largest.Property.Use…Gross.Floor.Area..ft..	
+
+```{r}
+nyc_data_clean = subset(nyc_data_clean, select = -c(data_frame$column_names[1:10]))
 ```
 
 
+
+
+
 1b. Remove unnessary variables based the data (null removal, imputation, row removal)
+
+
 1c. EDA ( Data exploration ). Plot pair plot between the target and other predictor variables.
 1d. Final data for different models (2/3 csv files)
 
