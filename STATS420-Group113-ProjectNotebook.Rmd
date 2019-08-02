@@ -235,12 +235,39 @@ head(blog_data, 5)
 ```
 
 ```{r}
-blog_data_lm = lm (score ~ . , data = blog_data)
-summary(blog_data_lm)
+dim(blog_data)
+dim(blog_data1)
 ```
 
 ```{r}
-blog_data_lm_step = step(blog_data_lm, trace = 0)
-summary(blog_data_lm_step)
+
+#blog_data_lm = lm (score ~ . , data = blog_data)
+#summary(blog_data_lm)
+
+blog_data1 = na.omit(blog_data)
+blog_data_lm1 = lm (score ~ . -Property.Id, data = blog_data1)
+summary(blog_data_lm1)
+```
+
+```{r}
+
+blog_data_lm_step1 = step(blog_data_lm1, trace = 0)
+summary(blog_data_lm_step1)
+```
+
+```{r}
+plot(score ~ Order, data=blog_data1)
+```
+
+
+```{r}
+blog_data_lm_step1_optimized = lm(formula = score ~ Order + DOF.Gross.Floor.Area + Year.Built + 
+    Site.EUI..kBtu.ft.. + Weather.Normalized.Site.Electricity.Intensity..kWh.ft.. + 
+    Weather.Normalized.Site.Natural.Gas.Intensity..therms.ft.. + 
+    Community.Board, data = blog_data1)
+```
+
+```{r}
+summary(blog_data_lm_step1_optimized)
 ```
 
