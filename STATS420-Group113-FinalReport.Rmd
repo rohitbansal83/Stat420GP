@@ -96,7 +96,7 @@ nyc_data_clean = subset(nyc_data_original, select = -c(Order, Property.Id, Prope
                                                       List.of.All.Property.Use.Types.at.Property, Metered.Areas..Energy.))
 dim(nyc_data_clean)
 ```
-After removing the unwanted variables, we have 39 variables. 
+After removing the unwanted variables, we have 38 variables. 
 
 - After this we checked for null/not avialable data for variables. 
 
@@ -145,7 +145,7 @@ dim(nyc_data_clean)
 
 ```
 
-after deleting the unwanted variables we have 29 variables. Lets have a looks at the varialbes and the missing data status.
+after deleting the unwanted variables we have 28 variables. Lets have a looks at the varialbes and the missing data status.
 
 
 ```{r}
@@ -201,21 +201,30 @@ nyc_data_clean$Direct.GHG.Emissions..Metric.Tons.CO2e. = as.numeric(as.character
 
 nyc_data_clean$Indirect.GHG.Emissions..Metric.Tons.CO2e. = as.numeric(as.character(nyc_data_clean$Indirect.GHG.Emissions..Metric.Tons.CO2e.))
 
-nyc_data_clean[ nyc_data_clean$Water.Required. == "",]['Water.Required.'] = 'Yes'
-
-building_data = ifelse(nyc_data_clean$Metered.Areas...Water. == "Whole Building", 'WholeBuilding', "Other")
-nyc_data_clean$Metered.Areas...Water. = as.factor(building_data)
-
-#Lets change the response variable name and convert it into a numeric variable:
-names(nyc_data_clean)[names(nyc_data_clean) =='ENERGY.STAR.Score'] = 'Score'
-nyc_data_clean$Score = as.numeric(nyc_data_clean$Score)
-
-str(nyc_data_clean)
 ```
 
+Lets change the response variable name and convert it into a numeric variable:
+
+```{r}
+
+names(nyc_data_clean)[names(nyc_data_clean) =='ENERGY.STAR.Score'] = 'Score'
+nyc_data_clean$Score = as.numeric(nyc_data_clean$Score)
+```
+
+So without removing any observation we have cleaned our dataset to a good extent. 
 
 
-So without removing any observation we have cleaned our dataset to a good extent. Now lets do some more analysis on our data. This data is for all the building in New York City and their energy rating. The different type of buildings will have different energy consumption pattern and thus the model should be differnet for them. So lets analyze the range of values we have for the property type.
+
+
+##Step 2: Data Cleaning & Dealing with Missing Values
+1b. Remove unnessary variables based the data (null removal, imputation, row removal)
+
+We analyzed the data and applied data imputation and transformation in order to deal with missing data values. 
+
+
+- Largest.Property.Use.Type
+
+This data is for all the building in New York City and their energy rating. The different type of buildings will have different energy consumption pattern and thus the model should be different for them. So lets analyze the range of values we have for the property type.
 
 ```{r}
 sort(table(nyc_data_clean$Largest.Property.Use.Type),decreasing = TRUE)
@@ -235,33 +244,40 @@ nyc_data_clean$building_type = ifelse(nyc_data_clean$Largest.Property.Use.Type =
 
 nyc_data_clean$building_type = as.factor(nyc_data_clean$building_type)
 table(nyc_data_clean$building_type)
-
-str(nyc_data_clean)
 ```
 
+
+- Water.Required.
+
+```{r}
+table(nyc_data_clean$Water.Required)
+```
+
+There are 81 records for which whater required value is missing. By domain knowledge we found that all these building requires water connection and water for day to day functioning thus we update this value with Yes.
 
 
 
 ```{r}
+nyc_data_clean[ nyc_data_clean$Water.Required. == "",]['Water.Required.'] = 'Yes'
 
-par(mfrow = c(1,3))
-x = nyc_data_clean[nyc_data_clean$building_type=="MultiFamilyHousing",]
-y = nyc_data_clean[nyc_data_clean$building_type=="Office",]
-z = nyc_data_clean[nyc_data_clean$building_type=="Others",]
-
-hist(x$Score, col    = "dodgerblue")
-hist(y$Score, col    = "dodgerblue")
-hist(z$Score, col    = "dodgerblue")
 ```
 
-
-1b. Remove unnessary variables based the data (null removal, imputation, row removal)
+- Metered.Areas...Water.
 
 ```{r}
-names(nyc_data_clean)
-write.csv(nyc_data_clean, "nyc_data_clean.csv") 
+table(nyc_data_clean$Metered.Areas...Water.)
+```
+
+
+40% data is missing for this variable. Out of the rest of the 60% data 55% beongs to "whole building" category. Thus we converted it to two major categories "whole building" and "Others" 
+
+```{r}
+building_data = ifelse(nyc_data_clean$Metered.Areas...Water. == "Whole Building", 'WholeBuilding', "Others")
+nyc_data_clean$Metered.Areas...Water. = as.factor(building_data)
+nyc_data_clean = droplevels.data.frame(nyc_data_clean)
 
 ```
+
 
 <!-- 	column_names	num_of_not_available -->
 <!-- 10	Metered.Areas…Water.	0.39 -->
@@ -274,48 +290,83 @@ write.csv(nyc_data_clean, "nyc_data_clean.csv")
 <!-- 17	Natural.Gas.Use..kBtu.	0.10 -->
 <!-- 14	Weather.Normalized.Site.Electricity.Intensity..kWh.ft..	0.05 -->
 
+- Source.EUI..kBtu.ft..
 
+We analyzed the data for this variable via bar charts and found log transformation is suitable for this variable:
 
 ```{r}
-#change factor to numeric(min-max scaler)
-#3 TBD : log
-#par(mfrow = c(1,2))
-#hist(nyc_data_clean$Source.EUI..kBtu.ft..)
-#hist(log(nyc_data_clean$Source.EUI..kBtu.ft..))
 
-nyc_data_clean$Source.EUI..kBtu.ft.. = log(nyc_data_clean$Source.EUI..kBtu.ft..)
+par(mfrow = c(1,2))
+hist(nyc_data_clean$Source.EUI..kBtu.ft..)
+hist(log(nyc_data_clean$Source.EUI..kBtu.ft..))
+```
+
+Applying log transformation:
+
+```{r}
+#nyc_data_clean$Source.EUI..kBtu.ft.. = log(nyc_data_clean$Source.EUI..kBtu.ft..)
+
+```
+
+- DOF.Gross.Floor.Area
+
+```{r}
+nrow(nyc_data_clean[which(nyc_data_clean$DOF.Gross.Floor.Area == "NA"), ])
+```
+
+There are 63 missing vlaues for floor area. We will use average building area for these observations.
+
+```{r}
+range01 = function(x){(x-min(x))/(max(x)-min(x))}
+
+
+#table(nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft..)
+var = nyc_data_clean$DOF.Gross.Floor.Area
+bdt = nyc_data_clean$building_type
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$DOF.Gross.Floor.Area = var
+
+hist(var)
+```
+
+applying min-max scaling
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$DOF.Gross.Floor.Area = scaled_value
 ```
 
 
-```{r}
-#TODO
-# DOF.Gross.Floor.Area : 63
-#nrow(nyc_data_clean[which(nyc_data_clean$DOF.Gross.Floor.Area == "NA"), ])
-#nyc_data_clean$DOF.Gross.Floor.Area[1:10]
-
-aggregate(nyc_data_clean$DOF.Gross.Floor.Area~nyc_data_clean$building_type, nyc_data_clean, mean)
-
-nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area) & nyc_data_clean$building_type=="MultiFamilyHousing", 140789.4, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))
-
-nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area) & nyc_data_clean$building_type=="Office", 308405.9, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))
-
-nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area) & nyc_data_clean$building_type=="Others", 174541.1, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))
-```
+- Largest.Property.Use.Type...Gross.Floor.Area..ft..
 
 ```{r}
-aggregate(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. ~ nyc_data_clean$building_type, nyc_data_clean, mean)
+hist(nyc_data_clean$Largest.Property.Use.Type...Gross.Floor.Area..ft..)
 
-nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) & nyc_data_clean$building_type=="MultiFamilyHousing", 103.39159, as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..))
-
-nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) & nyc_data_clean$building_type=="Office", 42.79896, as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..))
-
-nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) & nyc_data_clean$building_type=="Others", 232.34960, as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..))
 ```
 
+
+
+applying min-max scaling
+
+```{r}
+scaled_value = range01(nyc_data_clean$Largest.Property.Use.Type...Gross.Floor.Area..ft..)
+nyc_data_clean$Largest.Property.Use.Type...Gross.Floor.Area..ft.. = scaled_value
+```
+
+
+- Year.Built
+
+most of the values starts from 1900. Thus we applied min-max transformation to scale it.  
 
 ```{r}
 nrow(nyc_data_clean[which(nyc_data_clean$Year.Built == 0), ])
-range01 = function(x){(x-min(x))/(max(x)-min(x))}
+nyc_data_clean$Year.Built = range01(nyc_data_clean$Year.Built)
 
 # min-max scaler
 #par(mfrow=c(1,2))
@@ -323,34 +374,488 @@ range01 = function(x){(x-min(x))/(max(x)-min(x))}
 #hist(range01(nyc_data_clean$Year.Built))
 ```
 
+- Number.of.Buildings...Self.reported
 
 ```{r}
-# Number.of.Buildings...Self.reported
-#hist(nyc_data_clean$Number.of.Buildings...Self.reported)
-#hist(log(nyc_data_clean$Number.of.Buildings...Self.reported))
-
-range01 = function(x){(x-min(x))/(max(x)-min(x))}   
-
-scaled_value = range01(nyc_data_clean$Number.of.Buildings...Self.reported)
-nyc_data_clean$Number.of.Buildings...Self.reported = scaled_value
+hist(nyc_data_clean$Number.of.Buildings...Self.reported)
 ```
 
+
+Data is highly skewed. Again we applied min-max transformation to scale it.
+
+```{r}
+nyc_data_clean$Number.of.Buildings...Self.reported = range01(nyc_data_clean$Number.of.Buildings...Self.reported)
+
+```
+
+- Occupancy
 
 ```{r}
 #Occupancy
 hist(nyc_data_clean$Occupancy)
+```
+
+Applying min-max transformation:
+
+```{r}
 scaled_value = range01(nyc_data_clean$Occupancy)
 nyc_data_clean$Occupancy = scaled_value
+
 ```
+
+- Property.GFA...Self.Reported..ft..
 
 ```{r}
 hist(nyc_data_clean$Property.GFA...Self.Reported..ft..)
+```
+
+Applying min-max transformation:
+
+```{r}
 scaled_value = range01(nyc_data_clean$Property.GFA...Self.Reported..ft..)
 nyc_data_clean$Property.GFA...Self.Reported..ft.. = scaled_value
 ```
 
+- Site.EUI..kBtu.ft..   
+
 ```{r}
-str(nyc_data_clean)
+hist(nyc_data_clean$Site.EUI..kBtu.ft..)
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(nyc_data_clean$Site.EUI..kBtu.ft..)
+nyc_data_clean$Site.EUI..kBtu.ft.. = scaled_value
+```
+
+- Weather.Normalized.Site.EUI..kBtu.ft..
+
+```{r}
+#table(nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft..)
+var = nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft..
+bdt = nyc_data_clean$building_type
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft.. = var
+
+```
+
+
+```{r}
+
+hist(nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft..)
+
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft.. = scaled_value
+
+```
+
+- Weather.Normalized.Site.Electricity.Intensity..kWh.ft..
+```{r}
+
+#table(nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft..)
+var = nyc_data_clean$Weather.Normalized.Site.Electricity.Intensity..kWh.ft..
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Weather.Normalized.Site.Electricity.Intensity..kWh.ft.. = var
+
+hist(var)
+
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Weather.Normalized.Site.Electricity.Intensity..kWh.ft.. = scaled_value
+```
+
+
+- Weather.Normalized.Site.Natural.Gas.Intensity..therms.ft..
+
+```{r}
+
+var = nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Intensity..therms.ft..
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Intensity..therms.ft.. = var
+
+hist(var)
+
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Intensity..therms.ft.. = scaled_value
+```
+
+- Weather.Normalized.Source.EUI..kBtu.ft..
+
+```{r}
+var = nyc_data_clean$Weather.Normalized.Source.EUI..kBtu.ft..
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Weather.Normalized.Source.EUI..kBtu.ft.. = var
+
+hist(var)
+
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Weather.Normalized.Source.EUI..kBtu.ft.. = scaled_value
+```
+
+- Natural.Gas.Use..kBtu.
+
+```{r}
+var = nyc_data_clean$Natural.Gas.Use..kBtu.
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Natural.Gas.Use..kBtu. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Natural.Gas.Use..kBtu. = scaled_value
+```
+
+- Weather.Normalized.Site.Natural.Gas.Use..therms.
+
+```{r}
+var = nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Use..therms.
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Use..therms. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Use..therms.= scaled_value
+```
+
+
+- Electricity.Use...Grid.Purchase..kBtu.
+
+```{r}
+var = nyc_data_clean$Electricity.Use...Grid.Purchase..kBtu.
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Electricity.Use...Grid.Purchase..kBtu. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Electricity.Use...Grid.Purchase..kBtu. = scaled_value
+```
+
+- Weather.Normalized.Site.Electricity..kWh.
+
+```{r}
+var = nyc_data_clean$Weather.Normalized.Site.Electricity..kWh.
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Weather.Normalized.Site.Electricity..kWh. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Weather.Normalized.Site.Electricity..kWh. = scaled_value
+```
+
+
+- Total.GHG.Emissions..Metric.Tons.CO2e.
+
+```{r}
+var = nyc_data_clean$Total.GHG.Emissions..Metric.Tons.CO2e.
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Total.GHG.Emissions..Metric.Tons.CO2e. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Total.GHG.Emissions..Metric.Tons.CO2e. = scaled_value
+```
+
+
+- Direct.GHG.Emissions..Metric.Tons.CO2e.
+
+```{r}
+var = nyc_data_clean$Direct.GHG.Emissions..Metric.Tons.CO2e.
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Direct.GHG.Emissions..Metric.Tons.CO2e. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Direct.GHG.Emissions..Metric.Tons.CO2e. = scaled_value
+```
+
+
+- Indirect.GHG.Emissions..Metric.Tons.CO2e.
+```{r}
+var = nyc_data_clean$Indirect.GHG.Emissions..Metric.Tons.CO2e.
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Indirect.GHG.Emissions..Metric.Tons.CO2e. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Indirect.GHG.Emissions..Metric.Tons.CO2e. = scaled_value
+```
+
+
+- Property.GFA...Self.Reported..ft..
+
+```{r}
+var = nyc_data_clean$Property.GFA...Self.Reported..ft..
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Property.GFA...Self.Reported..ft.. = scaled_value
+```
+
+
+- Water.Use..All.Water.Sources...kgal.
+
+```{r}
+var = nyc_data_clean$Water.Use..All.Water.Sources...kgal.
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Water.Use..All.Water.Sources...kgal. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Water.Use..All.Water.Sources...kgal. = scaled_value
+```
+
+- Water.Intensity..All.Water.Sources...gal.ft..
+
+```{r}
+var = nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..
+
+bdt = nyc_data_clean$building_type
+
+agg = aggregate(var~bdt, nyc_data_clean, mean)
+#table(is.na(var))
+#agg
+
+
+var =   ifelse(is.na(var) & bdt=="MultiFamilyHousing", agg[1,2], var)
+var =   ifelse(is.na(var) & bdt=="Office", agg[2,2], var)
+var =   ifelse(is.na(var) & bdt=="Others", agg[3,2], var)
+
+
+nyc_data_clean$Weather.Normalized.Site.Electricity..kWh. = var
+
+hist(var)
+
+```
+
+Applying min-max transformation:
+
+```{r}
+scaled_value = range01(var)
+nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. = scaled_value
+
+
+```
+
+Change the names of dataset to more human readable format
+
+```{r}
+names(nyc_data_clean) =c("Borough","Gross_Floor_Area","Primary_Property_Type","Largest_Property_Use_Type","LPUT_Gross_Floor_Area","Year","Number_Buildings"
+                         ,"Occupancy","Metered_Areas_Water","Score","Site_EUI","Weather_Normalized_Site_EUI","Weather_Normalized_Site_EI",
+                         "Weather_Normalized_Site_NGI","Weather_Normalized_Source_EUI","Natural_Gas_Use","Weather_Normalized_Natural_Gas_Use",
+                         "Electricity_Use","Weather_Normalized_Electricity","Total_GHG_Emissions","Direct_GHG_Emissions","Indirect_GHG_Emissions",
+                         "Property_GFA","Water_Use","Water_Intensity","Source_EUI","Water_Required","building_type")   
 ```
 
 1c. EDA ( Data exploration ). Plot pair plot between the target and other predictor variables.
@@ -358,6 +863,80 @@ str(nyc_data_clean)
 
 Step2: Find full additive model. 
 2a. Create a benchmark prediction
+
+The different type of buildings will have different energy consumption pattern and thus the model should be different for them. 
+
+
+
+
+```{r}
+
+nyc_data_clean1 = subset(nyc_data_clean,select = -c(Primary_Property_Type,Largest_Property_Use_Type))
+
+
+
+par(mfrow = c(1,3))
+nyc_mfh = nyc_data_clean1[nyc_data_clean1$building_type=="MultiFamilyHousing",]
+nyc_offices = nyc_data_clean1[nyc_data_clean1$building_type=="Office",]
+nyc_others = nyc_data_clean1[nyc_data_clean1$building_type=="Others",]
+
+nyc_mfh = subset(nyc_mfh,select = -c(building_type))
+
+nyc_offices = subset(nyc_offices,select = -c(building_type))
+nyc_others = subset(nyc_others,select = -c(building_type))
+
+
+
+hist(nyc_mfh$Score, col    = "dodgerblue")
+hist(nyc_offices$Score, col    = "dodgerblue")
+hist(nyc_others$Score, col    = "dodgerblue")
+```
+
+It is clear that the energy score pattern is very different for different types of building thus we decided to build 3 different models for 3 different type of buildings.
+
+Since we have already identified the relevant variables, cleaned the data and tranformed few of the variables we decided to have full additive model as the starting base model.
+
+```{r}
+str(nyc_data_clean)
+```
+
+
+
+
+```{r}
+
+#Borough+Gross_Floor_Area+Primary_Property_Type+Largest_Property_Use_Type+LPUT_Gross_Floor_Area+Year+Number_Buildings+Occupancy+Metered_Areas_Water+Score+Site_EUI+Weather_Normalized_Site_EUI+Weather_Normalized_Site_EI+Weather_Normalized_Site_NGI+Weather_Normalized_Source_EUI+Natural_Gas_Use+Weather_Normalized_Natural_Gas_Use+Electricity_Use+Weather_Normalized_Electricity+Total_GHG_Emissions+Direct_GHG_Emissions+Indirect_GHG_Emissions+Property_GFA+Water_Use+Water_Intensity+Source_EUI+Water_Required+building_type
+
+additive_model = lm(Score~., data = nyc_data_clean1)
+
+additive_model_mfh = lm(Score~., data = nyc_mfh)
+additive_model_offices = lm(Score~.,data = nyc_offices)
+additive_model_others = lm(Score~.,data = nyc_others)
+```
+
+lets analyze our base models:
+
+```{r}
+summary(additive_model_mfh)
+summary(additive_model_offices)
+summary(additive_model_others)
+
+summary(additive_model)
+
+```
+
+
+```{r}
+
+summary(step(additive_model_mfh, trace = 0))
+summary(step(additive_model_offices, trace = 0))
+summary(step(additive_model_others, trace = 0))
+
+summary(step(additive_model, trace = 0))
+
+```
+
+
 
 Step3: Find an optimal model 
 3a. use `Step` function
