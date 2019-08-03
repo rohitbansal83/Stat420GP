@@ -85,6 +85,7 @@ Street.Name
 Release.Date
 DOF.Benchmarking.Submission.Status
 List.of.All.Property.Use.Types.at.Property
+Metered.Areas..Energy.
 
 ```{r}
 #First we have to rename the column names to remove the space in the column name
@@ -92,7 +93,7 @@ List.of.All.Property.Use.Types.at.Property
 
 nyc_data_clean = subset(nyc_data_original, select = -c(Order, Property.Id, Property.Name, Parent.Property.Id,
                                                       Parent.Property.Name, BBL...10.digits, NYC.Borough..Block.and.Lot..BBL..self.reported,                                                                       NYC.Building.Identification.Number..BIN.,Address.1..self.reported., Address.2,                                                                               Postal.Code,Street.Number,Street.Name, Release.Date, DOF.Benchmarking.Submission.Status,
-                                                      List.of.All.Property.Use.Types.at.Property))
+                                                      List.of.All.Property.Use.Types.at.Property, Metered.Areas..Energy.))
 dim(nyc_data_clean)
 ```
 After removing the unwanted variables, we have 39 variables. 
@@ -133,7 +134,6 @@ Based on the above table we found that following variables have missing data for
 
 
 ```{r}
-
 nyc_data_clean = subset(nyc_data_clean, select = -c(Fuel.Oil..1.Use..kBtu.,Diesel..2.Use..kBtu.,Fuel.Oil..5...6.Use..kBtu.,X3rd.Largest.Property.Use.Type,
                                                        X3rd.Largest.Property.Use.Type...Gross.Floor.Area..ft..,District.Steam.Use..kBtu.,
                                                        Fuel.Oil..4.Use..kBtu.,Fuel.Oil..2.Use..kBtu.,X2nd.Largest.Property.Use.Type,
@@ -168,6 +168,52 @@ kable(x = dt)
 
 ```
 
+While loading the csv, quite a few variables were converted to factor variables as the data was numeric but contained "Not Available" for some records. Converting those recods back to the numeric variable
+
+```{r}
+
+nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. = as.numeric(as.character(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..))
+nyc_data_clean$Source.EUI..kBtu.ft.. = as.numeric(as.character(nyc_data_clean$Source.EUI..kBtu.ft..))
+nyc_data_clean$Water.Use..All.Water.Sources...kgal. = as.numeric(as.character(nyc_data_clean$Water.Use..All.Water.Sources...kgal.))
+nyc_data_clean$Largest.Property.Use.Type...Gross.Floor.Area..ft.. = as.numeric(as.character(nyc_data_clean$Largest.Property.Use.Type...Gross.Floor.Area..ft..))
+
+nyc_data_clean$Site.EUI..kBtu.ft.. = as.numeric(as.character(nyc_data_clean$Site.EUI..kBtu.ft..))
+
+nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft.. = as.numeric(as.character(nyc_data_clean$Weather.Normalized.Site.EUI..kBtu.ft..))
+
+nyc_data_clean$Weather.Normalized.Site.Electricity.Intensity..kWh.ft.. = as.numeric(as.character(nyc_data_clean$Weather.Normalized.Site.Electricity.Intensity..kWh.ft..))
+
+nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Intensity..therms.ft.. = as.numeric(as.character(nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Intensity..therms.ft..))
+
+nyc_data_clean$Weather.Normalized.Source.EUI..kBtu.ft.. = as.numeric(as.character(nyc_data_clean$Weather.Normalized.Source.EUI..kBtu.ft..))
+
+nyc_data_clean$Natural.Gas.Use..kBtu. = as.numeric(as.character(nyc_data_clean$Natural.Gas.Use..kBtu.))
+
+nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Use..therms. = as.numeric(as.character(nyc_data_clean$Weather.Normalized.Site.Natural.Gas.Use..therms.))
+
+nyc_data_clean$Electricity.Use...Grid.Purchase..kBtu. = as.numeric(as.character(nyc_data_clean$Electricity.Use...Grid.Purchase..kBtu.))
+
+nyc_data_clean$Weather.Normalized.Site.Electricity..kWh. = as.numeric(as.character(nyc_data_clean$Weather.Normalized.Site.Electricity..kWh.))
+
+nyc_data_clean$Total.GHG.Emissions..Metric.Tons.CO2e. = as.numeric(as.character(nyc_data_clean$Total.GHG.Emissions..Metric.Tons.CO2e.))
+
+nyc_data_clean$Direct.GHG.Emissions..Metric.Tons.CO2e. = as.numeric(as.character(nyc_data_clean$Direct.GHG.Emissions..Metric.Tons.CO2e.))
+
+nyc_data_clean$Indirect.GHG.Emissions..Metric.Tons.CO2e. = as.numeric(as.character(nyc_data_clean$Indirect.GHG.Emissions..Metric.Tons.CO2e.))
+
+nyc_data_clean[ nyc_data_clean$Water.Required. == "",]['Water.Required.'] = 'Yes'
+
+building_data = ifelse(nyc_data_clean$Metered.Areas...Water. == "Whole Building", 'WholeBuilding', "Other")
+nyc_data_clean$Metered.Areas...Water. = as.factor(building_data)
+
+names(nyc_data_clean)[names(nyc_data_clean) =='ENERGY.STAR.Score'] = 'Score'
+nyc_data_clean$Score = as.numeric(nyc_data_clean$Score)
+
+str(nyc_data_clean)
+```
+
+
+
 So without removing any observation we have cleaned our dataset to a good extent. Now lets do some more analysis on our data. This data is for all the building in New York City and their energy rating. The different type of buildings will have different energy consumption pattern and thus the model should be differnet for them. So lets analyze the range of values we have for the property type.
 
 ```{r}
@@ -186,9 +232,10 @@ We will add a dummy variable to do so.
 nyc_data_clean$building_type = ifelse(nyc_data_clean$Largest.Property.Use.Type == "Multifamily Housing", 'MultiFamilyHousing',
                                       ifelse(nyc_data_clean$Largest.Property.Use.Type =="Office", "Office", "Others"))
 
+nyc_data_clean$building_type = as.factor(nyc_data_clean$building_type)
 table(nyc_data_clean$building_type)
 
-names(nyc_data_clean)
+str(nyc_data_clean)
 ```
 
 Lets change the response variable name and convert it into a numeric variable:
@@ -263,11 +310,60 @@ col = 'Water.Intensity..All.Water.Sources...gal.ft..'
 round(mean(nyc_data_clean[,col]=="Not Available"),4)
 9642 * 0.323
 
-nyc_data_clean[which(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. == "0"),][1:10]
+#nyc_data_clean[which(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. == "Not Available"), ]
 
-aggregate(as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) ~ building_type, nyc_data_clean, c(Largest.Property.Use.Type, col) )
+nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. = ifelse(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..=="Not Available",0, as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) )
+
+write.csv(nyc_data_clean, "nyc_data_clean_1.csv")
+aggregate(as.double(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) ~ building_type, nyc_data_clean, mean)
 ```
 
+
+
+```{r}
+# DOF.Gross.Floor.Area : 63
+nrow(nyc_data_clean[which(nyc_data_clean$DOF.Gross.Floor.Area == "NA"), ])
+
+nyc_data_clean$DOF.Gross.Floor.Area[1:10]
+ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area), 0, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))[1:10]
+
+```
+
+```{r}
+nrow(nyc_data_clean[which(nyc_data_clean$Year.Built == 0), ])
+range01 = function(x){(x-min(x))/(max(x)-min(x))}
+
+# min-max scaler
+#par(mfrow=c(1,2))
+#hist(nyc_data_clean$Year.Built)
+#hist(range01(nyc_data_clean$Year.Built))
+```
+
+
+```{r}
+# Number.of.Buildings...Self.reported
+#hist(nyc_data_clean$Number.of.Buildings...Self.reported)
+#hist(log(nyc_data_clean$Number.of.Buildings...Self.reported))
+
+range01 = function(x){(x-min(x))/(max(x)-min(x))}   
+
+scaled_value = range01(nyc_data_clean$Number.of.Buildings...Self.reported)
+nyc_data_clean$Number.of.Buildings...Self.reported = scaled_value
+```
+
+
+```{r}
+#Occupancy
+hist(nyc_data_clean$Occupancy)
+scaled_value = range01(nyc_data_clean$Occupancy)
+nyc_data_clean$Occupancy = scaled_value
+```
+
+```{r}
+hist(nyc_data_clean$Property.GFA...Self.Reported..ft..)
+scaled_value = range01(nyc_data_clean$Property.GFA...Self.Reported..ft..)
+nyc_data_clean$Property.GFA...Self.Reported..ft.. = scaled_value
+```
 
 1c. EDA ( Data exploration ). Plot pair plot between the target and other predictor variables.
 1d. Final data for different models (2/3 csv files)
