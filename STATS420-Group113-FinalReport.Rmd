@@ -56,47 +56,48 @@ There are `53` other columns in this dataset. From a very high-level overview, w
 #### - Step1: Data preparation
 1a. High level data. Mention dimension 
 
-Since `ENERGY.STAR.Score` is the response variable, we removing the records where the `ENERGY.STAR.Score` is not available. 
+As the first step we will load the data and rename the variable names in order to remove the space in the variable name. Also, Since `ENERGY.STAR.Score` is the response variable, we removing the records where the `ENERGY.STAR.Score` is not available. 
 
 ```{r}
 nyc_data_original = read.csv('NYC-BuildingEnergyData-FromSite_original.csv')
+names(nyc_data_original) = make.names(names(nyc_data_original), unique=TRUE)
 nyc_data_original = subset(nyc_data_original, nyc_data_original$ENERGY.STAR.Score != "Not Available")
 dim(nyc_data_original)
 ```
 
-So the original data set has 9,642 records and 54 columns. 
+So the original data set has 9,642 observations and 54 variables. 
 
-- After observing the data, we found that the following columns are not relevant for our analysis. So we deleted this columns from our dataset. 
+- After observing the data, we found that the following variables are for informational and tracking purpose and does not have any relevance for our analysis. So we deleted these variables from our dataset. 
 
 Order
-Property Id
-Property Name
-Parent Property Id
-Parent Property Name
-BBL - 10 digits
-NYC Borough, Block and Lot (BBL) self-reported
-NYC Building Identification Number (BIN)
-Address 1 (self-reported)
-Address 2
-Postal Code
-Street Number
-Street Name
-Release Date
-DOF Benchmarking Submission Status
+Property.Id
+Property.Name
+Parent.Property.Id
+Parent.Property.Name
+BBL...10.digits
+NYC.Borough..Block.and.Lot..BBL..self.reported
+NYC.Building.Identification.Number..BIN.
+Address.1..self.reported.
+Address.2
+Postal.Code
+Street.Number
+Street.Name
+Release.Date
+DOF.Benchmarking.Submission.Status
+List.of.All.Property.Use.Types.at.Property
 
 ```{r}
+#First we have to rename the column names to remove the space in the column name
 
-names(nyc_data_original) = make.names(names(nyc_data_original), unique=TRUE)
-names(nyc_data_original)
+
 nyc_data_clean = subset(nyc_data_original, select = -c(Order, Property.Id, Property.Name, Parent.Property.Id,
-                                                            Parent.Property.Name, BBL...10.digits, NYC.Borough..Block.and.Lot..BBL..self.reported, NYC.Building.Identification.Number..BIN.,
-                                                          Address.1..self.reported., Address.2, Postal.Code,Street.Number, 
-                                                          Street.Name, Release.Date, DOF.Benchmarking.Submission.Status))
+                                                      Parent.Property.Name, BBL...10.digits, NYC.Borough..Block.and.Lot..BBL..self.reported,                                                                       NYC.Building.Identification.Number..BIN.,Address.1..self.reported., Address.2,                                                                               Postal.Code,Street.Number,Street.Name, Release.Date, DOF.Benchmarking.Submission.Status,
+                                                      List.of.All.Property.Use.Types.at.Property))
 dim(nyc_data_clean)
 ```
-After removing the unwanted columns, we have 39 columns or predictors. 
+After removing the unwanted variables, we have 39 variables. 
 
-- Based on the significantly high number of null or 'Not Applicable' values, we have removed the following columns as well.
+- After this we checked for null/not avialable data for variables. 
 
 ```{r}
 library(knitr)
@@ -115,14 +116,13 @@ dt = data_frame[order(-data_frame$num_of_not_available),]
 kable(x = dt)
 ```
 
-The above table shows that for the following columns, more than 75% of the values are `Not Available`.
-Because of this much huge missing data, these columns are not considered in the modeling. 
-Based on our domain knowlegge, it is found that these columns don't have any significant data. 
+
+Based on the above table we found that following variables have missing data for more than more than 75% of observations.Also based on our domain knowledge these variables looks insignificant for our analysis. Thus we will not be considering these variables as well
 
 - Fuel.Oil..1.Use..kBtu.
 - Diesel..2.Use..kBtu.	
 - Fuel.Oil..5…6.Use..kBtu.	
-- 3rd.Largest.Property.Use.Type	
+- X3rd.Largest.Property.Use.Type	
 - X3rd.Largest.Property.Use.Type…Gross.Floor.Area..ft..	
 - District.Steam.Use..kBtu.	
 - Fuel.Oil..4.Use..kBtu.	
@@ -130,12 +130,87 @@ Based on our domain knowlegge, it is found that these columns don't have any sig
 - X2nd.Largest.Property.Use.Type	
 - X2nd.Largest.Property.Use…Gross.Floor.Area..ft..	
 
+
+
 ```{r}
-nyc_data_clean = subset(nyc_data_clean, select = -c(data_frame$column_names[1:10]))
+
+nyc_data_clean = subset(nyc_data_clean, select = -c(Fuel.Oil..1.Use..kBtu.,Diesel..2.Use..kBtu.,Fuel.Oil..5...6.Use..kBtu.,X3rd.Largest.Property.Use.Type,
+                                                       X3rd.Largest.Property.Use.Type...Gross.Floor.Area..ft..,District.Steam.Use..kBtu.,
+                                                       Fuel.Oil..4.Use..kBtu.,Fuel.Oil..2.Use..kBtu.,X2nd.Largest.Property.Use.Type,
+                                                       X2nd.Largest.Property.Use...Gross.Floor.Area..ft..))
+dim(nyc_data_clean)
+
+
+
+
+```
+
+after deleting the unwanted variables we have 29 variables. Lets have a looks at the varialbes and the missing data status.
+
+
+```{r}
+
+number_of_columns = ncol(nyc_data_clean)
+
+not_available_values = rep(0, number_of_columns)
+
+ind = 1
+for (col in names(nyc_data_clean)){
+  not_available_values[ind] = round(mean(nyc_data_clean[,col]=="Not Available"),2)
+  ind = ind + 1
+}
+
+data_frame = data.frame(column_names = names(nyc_data_clean), num_of_not_available = not_available_values)
+dt = data_frame[order(-data_frame$num_of_not_available),]
+kable(x = dt)
+
+
+
+```
+
+So without removing any observation we have cleaned our dataset to a good extent. Now lets do some more analysis on our data. This data is for all the building in New York City and their energy rating. The different type of buildings will have different energy consumption pattern and thus the model should be differnet for them. So lets analyze the range of values we have for the property type.
+
+```{r}
+sort(table(nyc_data_clean$Largest.Property.Use.Type),decreasing = TRUE)
+
+```
+
+So more than 75% of the data is for "Multifamily Housing". Next biggest category is "Office" with more than 10% of the record. Rest all the categories makes roughly around 10% of the data combined. So we will be categorizing the property types in 3 broad categories:
+---MultiFamilyHousing
+---Office
+---Others
+
+We will add a dummy variable to do so.
+
+```{r}
+nyc_data_clean$building_type = ifelse(nyc_data_clean$Largest.Property.Use.Type == "Multifamily Housing", 'MultiFamilyHousing',
+                                      ifelse(nyc_data_clean$Largest.Property.Use.Type =="Office", "Office", "Others"))
+
+table(nyc_data_clean$building_type)
+
+names(nyc_data_clean)
+```
+
+Lets change the response variable name and convert it into a numeric variable:
+
+```{r}
+names(nyc_data_clean)[name(nyc_data_clean) =='ENERGY.STAR.Score'] = 'Score'
+
+nyc_data_clean$Score = as.numeric(nyc_data_clean$Score)
 ```
 
 
+```{r}
 
+par(mfrow = c(1,3))
+x = nyc_data_clean[nyc_data_clean$building_type=="MultiFamilyHousing",]
+y = nyc_data_clean[nyc_data_clean$building_type=="Office",]
+z = nyc_data_clean[nyc_data_clean$building_type=="Others",]
+
+hist(x$Score, col    = "dodgerblue")
+hist(y$Score, col    = "dodgerblue")
+hist(z$Score, col    = "dodgerblue")
+```
 
 
 1b. Remove unnessary variables based the data (null removal, imputation, row removal)
