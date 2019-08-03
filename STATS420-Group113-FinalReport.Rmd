@@ -194,7 +194,7 @@ names(nyc_data_clean)
 Lets change the response variable name and convert it into a numeric variable:
 
 ```{r}
-names(nyc_data_clean)[name(nyc_data_clean) =='ENERGY.STAR.Score'] = 'Score'
+names(nyc_data_clean)[names(nyc_data_clean) =='ENERGY.STAR.Score'] = 'Score'
 
 nyc_data_clean$Score = as.numeric(nyc_data_clean$Score)
 ```
@@ -214,6 +214,59 @@ hist(z$Score, col    = "dodgerblue")
 
 
 1b. Remove unnessary variables based the data (null removal, imputation, row removal)
+
+```{r}
+names(nyc_data_clean)
+write.csv(nyc_data_clean, "nyc_data_clean.csv") 
+
+```
+
+<!-- 	column_names	num_of_not_available -->
+<!-- 10	Metered.Areas…Water.	0.39 -->
+<!-- 25	Water.Use..All.Water.Sources…kgal.	0.32 -->
+<!-- 26	Water.Intensity..All.Water.Sources…gal.ft..	0.32 -->
+<!-- 15	Weather.Normalized.Site.Natural.Gas.Intensity..therms.ft..	0.15 -->
+<!-- 18	Weather.Normalized.Site.Natural.Gas.Use..therms.	0.15 -->
+<!-- 13	Weather.Normalized.Site.EUI..kBtu.ft..	0.11 -->
+<!-- 16	Weather.Normalized.Source.EUI..kBtu.ft..	0.11 -->
+<!-- 17	Natural.Gas.Use..kBtu.	0.10 -->
+<!-- 14	Weather.Normalized.Site.Electricity.Intensity..kWh.ft..	0.05 -->
+
+```{r}
+#1
+table(nyc_data_clean$building_type)
+```
+
+```{r}
+#2
+table(nyc_data_clean$Water.Required.)
+  #     No  Yes 
+  # 81 3318 6243 
+```
+
+```{r}
+#change factor to numeric(min-max scaler)
+#3
+nyc_data_clean$Source.EUI..kBtu.ft.. = as.numeric(nyc_data_clean$Source.EUI..kBtu.ft..)
+
+par(mfrow = c(1,2))
+hist(nyc_data_clean$Source.EUI..kBtu.ft..)
+hist(log(nyc_data_clean$Source.EUI..kBtu.ft..))
+```
+
+```{r}
+#4
+x = as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..)
+length(x)
+
+col = 'Water.Intensity..All.Water.Sources...gal.ft..'
+round(mean(nyc_data_clean[,col]=="Not Available"),4)
+9642 * 0.323
+
+nyc_data_clean[which(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. == "0"),][1:10]
+
+aggregate(as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) ~ building_type, nyc_data_clean, c(Largest.Property.Use.Type, col) )
+```
 
 
 1c. EDA ( Data exploration ). Plot pair plot between the target and other predictor variables.
