@@ -206,6 +206,7 @@ nyc_data_clean[ nyc_data_clean$Water.Required. == "",]['Water.Required.'] = 'Yes
 building_data = ifelse(nyc_data_clean$Metered.Areas...Water. == "Whole Building", 'WholeBuilding', "Other")
 nyc_data_clean$Metered.Areas...Water. = as.factor(building_data)
 
+#Lets change the response variable name and convert it into a numeric variable:
 names(nyc_data_clean)[names(nyc_data_clean) =='ENERGY.STAR.Score'] = 'Score'
 nyc_data_clean$Score = as.numeric(nyc_data_clean$Score)
 
@@ -238,13 +239,7 @@ table(nyc_data_clean$building_type)
 str(nyc_data_clean)
 ```
 
-Lets change the response variable name and convert it into a numeric variable:
 
-```{r}
-names(nyc_data_clean)[names(nyc_data_clean) =='ENERGY.STAR.Score'] = 'Score'
-
-nyc_data_clean$Score = as.numeric(nyc_data_clean$Score)
-```
 
 
 ```{r}
@@ -279,53 +274,26 @@ write.csv(nyc_data_clean, "nyc_data_clean.csv")
 <!-- 17	Natural.Gas.Use..kBtu.	0.10 -->
 <!-- 14	Weather.Normalized.Site.Electricity.Intensity..kWh.ft..	0.05 -->
 
-```{r}
-#1
-table(nyc_data_clean$building_type)
-```
 
-```{r}
-#2
-table(nyc_data_clean$Water.Required.)
-  #     No  Yes 
-  # 81 3318 6243 
-```
 
 ```{r}
 #change factor to numeric(min-max scaler)
-#3
-nyc_data_clean$Source.EUI..kBtu.ft.. = as.numeric(nyc_data_clean$Source.EUI..kBtu.ft..)
+#3 TBD : log
+#par(mfrow = c(1,2))
+#hist(nyc_data_clean$Source.EUI..kBtu.ft..)
+#hist(log(nyc_data_clean$Source.EUI..kBtu.ft..))
 
-par(mfrow = c(1,2))
-hist(nyc_data_clean$Source.EUI..kBtu.ft..)
-hist(log(nyc_data_clean$Source.EUI..kBtu.ft..))
-```
-
-```{r}
-#4
-x = as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..)
-length(x)
-
-col = 'Water.Intensity..All.Water.Sources...gal.ft..'
-round(mean(nyc_data_clean[,col]=="Not Available"),4)
-9642 * 0.323
-
-#nyc_data_clean[which(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. == "Not Available"), ]
-
-nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. = ifelse(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..=="Not Available",0, as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) )
-
-write.csv(nyc_data_clean, "nyc_data_clean_1.csv")
-aggregate(as.double(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) ~ building_type, nyc_data_clean, mean)
+nyc_data_clean$Source.EUI..kBtu.ft.. = log(nyc_data_clean$Source.EUI..kBtu.ft..)
 ```
 
 
-
 ```{r}
+#TODO
 # DOF.Gross.Floor.Area : 63
-nrow(nyc_data_clean[which(nyc_data_clean$DOF.Gross.Floor.Area == "NA"), ])
+#nrow(nyc_data_clean[which(nyc_data_clean$DOF.Gross.Floor.Area == "NA"), ])
+#nyc_data_clean$DOF.Gross.Floor.Area[1:10]
 
-nyc_data_clean$DOF.Gross.Floor.Area[1:10]
-ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area), 0, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))[1:10]
+nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area), 0, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))[1:10]
 
 ```
 
