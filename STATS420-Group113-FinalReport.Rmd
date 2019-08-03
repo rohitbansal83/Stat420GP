@@ -293,9 +293,25 @@ nyc_data_clean$Source.EUI..kBtu.ft.. = log(nyc_data_clean$Source.EUI..kBtu.ft..)
 #nrow(nyc_data_clean[which(nyc_data_clean$DOF.Gross.Floor.Area == "NA"), ])
 #nyc_data_clean$DOF.Gross.Floor.Area[1:10]
 
-nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area), 0, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))[1:10]
+aggregate(nyc_data_clean$DOF.Gross.Floor.Area~nyc_data_clean$building_type, nyc_data_clean, mean)
 
+nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area) & nyc_data_clean$building_type=="MultiFamilyHousing", 140789.4, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))
+
+nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area) & nyc_data_clean$building_type=="Office", 308405.9, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))
+
+nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$DOF.Gross.Floor.Area) & nyc_data_clean$building_type=="Others", 174541.1, as.numeric(nyc_data_clean$DOF.Gross.Floor.Area))
 ```
+
+```{r}
+aggregate(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft.. ~ nyc_data_clean$building_type, nyc_data_clean, mean)
+
+nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) & nyc_data_clean$building_type=="MultiFamilyHousing", 103.39159, as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..))
+
+nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) & nyc_data_clean$building_type=="Office", 42.79896, as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..))
+
+nyc_data_clean$DOF.Gross.Floor.Area =   ifelse(is.na(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..) & nyc_data_clean$building_type=="Others", 232.34960, as.numeric(nyc_data_clean$Water.Intensity..All.Water.Sources...gal.ft..))
+```
+
 
 ```{r}
 nrow(nyc_data_clean[which(nyc_data_clean$Year.Built == 0), ])
@@ -331,6 +347,10 @@ nyc_data_clean$Occupancy = scaled_value
 hist(nyc_data_clean$Property.GFA...Self.Reported..ft..)
 scaled_value = range01(nyc_data_clean$Property.GFA...Self.Reported..ft..)
 nyc_data_clean$Property.GFA...Self.Reported..ft.. = scaled_value
+```
+
+```{r}
+str(nyc_data_clean)
 ```
 
 1c. EDA ( Data exploration ). Plot pair plot between the target and other predictor variables.
